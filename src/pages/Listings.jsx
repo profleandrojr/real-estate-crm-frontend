@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { listingService } from "../services/listingService";
-import { agentService } from "../services/agentService"; // Needed for dropdown
+import { agentService } from "../services/agentService";
 import { MapPin, Bed, Bath, Maximize, Plus } from "lucide-react";
 
 const Listings = () => {
   const [listings, setListings] = useState([]);
-  const [agents, setAgents] = useState([]);
+  const [agents, setAgents] = useState([]); // Needed for the dropdown
+
+  // State for the new listing form
   const [newListing, setNewListing] = useState({
     title: "",
+    description: "Great property", // Default description to satisfy backend
     price: "",
     address: "",
     bedrooms: "",
@@ -20,11 +23,13 @@ const Listings = () => {
 
   const loadData = async () => {
     try {
+      // Fetch both Listings (to display) and Agents (for the dropdown)
       const [listRes, agentRes] = await Promise.all([
         listingService.getAll(),
         agentService.getAll(),
       ]);
       setListings(listRes.data);
+      // Filter only realtors for the dropdown
       setAgents(agentRes.data.filter((a) => a.isRealtor));
     } catch (err) {
       console.error("Failed to load data", err);
@@ -38,6 +43,7 @@ const Listings = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Send the data to the backend
       await listingService.create({
         ...newListing,
         price: parseFloat(newListing.price),
@@ -45,8 +51,11 @@ const Listings = () => {
         bathrooms: parseInt(newListing.bathrooms),
         areaSquareMeters: parseFloat(newListing.areaSquareMeters),
       });
+
+      // Clear form and reload list
       setNewListing({
         title: "",
+        description: "Great property",
         price: "",
         address: "",
         bedrooms: "",
@@ -58,7 +67,8 @@ const Listings = () => {
       });
       loadData();
     } catch (err) {
-      alert("Error creating listing.");
+      console.error(err);
+      alert("Error creating listing. Make sure all fields are filled.");
     }
   };
 
@@ -66,7 +76,7 @@ const Listings = () => {
     <div className="space-y-8">
       <h1 className="text-3xl font-bold text-slate-800">Property Inventory</h1>
 
-      {/* CREATE FORM */}
+      {/* --- ADD LISTING FORM --- */}
       <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Plus size={20} /> New Listing
@@ -76,7 +86,7 @@ const Listings = () => {
           className="grid grid-cols-1 md:grid-cols-4 gap-4"
         >
           <input
-            className="p-2 border rounded-lg md:col-span-2"
+            className="p-2 border rounded-lg md:col-span-2 outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Title"
             value={newListing.title}
             onChange={(e) =>
@@ -85,8 +95,8 @@ const Listings = () => {
             required
           />
           <input
-            className="p-2 border rounded-lg"
-            placeholder="Price"
+            className="p-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Price ($)"
             type="number"
             value={newListing.price}
             onChange={(e) =>
@@ -95,7 +105,7 @@ const Listings = () => {
             required
           />
           <input
-            className="p-2 border rounded-lg"
+            className="p-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Address"
             value={newListing.address}
             onChange={(e) =>
@@ -104,54 +114,57 @@ const Listings = () => {
             required
           />
           <input
-            className="p-2 border rounded-lg"
+            className="p-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Beds"
             type="number"
             value={newListing.bedrooms}
             onChange={(e) =>
               setNewListing({ ...newListing, bedrooms: e.target.value })
             }
+            required
           />
           <input
-            className="p-2 border rounded-lg"
+            className="p-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Baths"
             type="number"
             value={newListing.bathrooms}
             onChange={(e) =>
               setNewListing({ ...newListing, bathrooms: e.target.value })
             }
+            required
           />
           <input
-            className="p-2 border rounded-lg"
+            className="p-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Area (m²)"
             type="number"
             value={newListing.areaSquareMeters}
             onChange={(e) =>
               setNewListing({ ...newListing, areaSquareMeters: e.target.value })
             }
+            required
           />
           <select
-            className="p-2 border rounded-lg"
+            className="p-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
             value={newListing.listingAgentId}
             onChange={(e) =>
               setNewListing({ ...newListing, listingAgentId: e.target.value })
             }
             required
           >
-            <option value="">Select Agent</option>
+            <option value="">Select Listing Agent</option>
             {agents.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.firstName} {a.lastName}
               </option>
             ))}
           </select>
-          <button className="bg-slate-900 text-white font-bold py-2 rounded-lg hover:bg-slate-800 md:col-span-4 mt-2">
+          <button className="bg-slate-900 text-white font-bold py-2 rounded-lg hover:bg-slate-800 md:col-span-4 mt-2 transition">
             Add Property
           </button>
         </form>
       </section>
 
-      {/* LISTINGS GRID */}
+      {/* --- LISTINGS GRID --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {listings.map((l) => (
           <div
