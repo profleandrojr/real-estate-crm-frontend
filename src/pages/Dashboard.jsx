@@ -59,7 +59,9 @@ const Dashboard = () => {
             className="bg-white p-6 rounded-xl shadow-sm border border-slate-200"
           >
             <div className="flex justify-between items-start">
-              <h3 className="text-xl font-bold">{agent.name}</h3>
+              <h3 className="text-xl font-bold">
+                {agent.FirstName} {agent.lastName}
+              </h3>
               <span
                 className={`px-2 py-1 rounded text-xs font-bold ${
                   agent.active
