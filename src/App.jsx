@@ -1,22 +1,37 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
-// Placeholder components for now
-const Listings = () => (
-  <h1 className="text-2xl font-bold">Listings Module (Public/Private)</h1>
-);
-const Leads = () => <h1 className="text-2xl font-bold">Leads Module (CRM)</h1>;
+import Leads from "./pages/Leads"; // <-- Import Leads
+import Listings from "./pages/Listings"; // <-- Import Listings
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="listings" element={<Listings />} />
-          <Route path="leads" element={<Leads />} />
-        </Route>
-      </Routes>
+      <Layout>
+        <Routes>
+          {/* Default to Dashboard */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+          <Route path="/dashboard" element={<Dashboard />} />
+
+          {/* Add these new routes so the Links work! */}
+          <Route path="/leads" element={<Leads />} />
+          <Route path="/listings" element={<Listings />} />
+
+          {/* Fallback for 404s */}
+          <Route
+            path="*"
+            element={
+              <h1 className="text-center mt-10">404 - Page Not Found</h1>
+            }
+          />
+        </Routes>
+      </Layout>
     </Router>
   );
 }

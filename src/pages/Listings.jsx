@@ -1,29 +1,157 @@
 import { useEffect, useState } from "react";
 import { listingService } from "../services/listingService";
-import { MapPin, Bed, Bath, Maximize } from "lucide-react";
+import { agentService } from "../services/agentService"; // Needed for dropdown
+import { MapPin, Bed, Bath, Maximize, Plus } from "lucide-react";
 
 const Listings = () => {
   const [listings, setListings] = useState([]);
+  const [agents, setAgents] = useState([]);
+  const [newListing, setNewListing] = useState({
+    title: "",
+    price: "",
+    address: "",
+    bedrooms: "",
+    bathrooms: "",
+    areaSquareMeters: "",
+    listingAgentId: "",
+    latitude: -23.55,
+    longitude: -46.63,
+  });
+
+  const loadData = async () => {
+    try {
+      const [listRes, agentRes] = await Promise.all([
+        listingService.getAll(),
+        agentService.getAll(),
+      ]);
+      setListings(listRes.data);
+      setAgents(agentRes.data.filter((a) => a.isRealtor));
+    } catch (err) {
+      console.error("Failed to load data", err);
+    }
+  };
 
   useEffect(() => {
-    let isMounted = true;
-    const loadListings = async () => {
-      try {
-        const res = await listingService.getAll();
-        if (isMounted) setListings(res.data);
-      } catch (err) {
-        console.error("Failed to load listings", err);
-      }
-    };
-    loadListings();
-    return () => {
-      isMounted = false;
-    };
+    loadData();
   }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await listingService.create({
+        ...newListing,
+        price: parseFloat(newListing.price),
+        bedrooms: parseInt(newListing.bedrooms),
+        bathrooms: parseInt(newListing.bathrooms),
+        areaSquareMeters: parseFloat(newListing.areaSquareMeters),
+      });
+      setNewListing({
+        title: "",
+        price: "",
+        address: "",
+        bedrooms: "",
+        bathrooms: "",
+        areaSquareMeters: "",
+        listingAgentId: "",
+        latitude: -23.55,
+        longitude: -46.63,
+      });
+      loadData();
+    } catch (err) {
+      alert("Error creating listing.");
+    }
+  };
 
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold text-slate-800">Property Inventory</h1>
+
+      {/* CREATE FORM */}
+      <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <Plus size={20} /> New Listing
+        </h2>
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-4 gap-4"
+        >
+          <input
+            className="p-2 border rounded-lg md:col-span-2"
+            placeholder="Title"
+            value={newListing.title}
+            onChange={(e) =>
+              setNewListing({ ...newListing, title: e.target.value })
+            }
+            required
+          />
+          <input
+            className="p-2 border rounded-lg"
+            placeholder="Price"
+            type="number"
+            value={newListing.price}
+            onChange={(e) =>
+              setNewListing({ ...newListing, price: e.target.value })
+            }
+            required
+          />
+          <input
+            className="p-2 border rounded-lg"
+            placeholder="Address"
+            value={newListing.address}
+            onChange={(e) =>
+              setNewListing({ ...newListing, address: e.target.value })
+            }
+            required
+          />
+          <input
+            className="p-2 border rounded-lg"
+            placeholder="Beds"
+            type="number"
+            value={newListing.bedrooms}
+            onChange={(e) =>
+              setNewListing({ ...newListing, bedrooms: e.target.value })
+            }
+          />
+          <input
+            className="p-2 border rounded-lg"
+            placeholder="Baths"
+            type="number"
+            value={newListing.bathrooms}
+            onChange={(e) =>
+              setNewListing({ ...newListing, bathrooms: e.target.value })
+            }
+          />
+          <input
+            className="p-2 border rounded-lg"
+            placeholder="Area (m²)"
+            type="number"
+            value={newListing.areaSquareMeters}
+            onChange={(e) =>
+              setNewListing({ ...newListing, areaSquareMeters: e.target.value })
+            }
+          />
+          <select
+            className="p-2 border rounded-lg"
+            value={newListing.listingAgentId}
+            onChange={(e) =>
+              setNewListing({ ...newListing, listingAgentId: e.target.value })
+            }
+            required
+          >
+            <option value="">Select Agent</option>
+            {agents.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.firstName} {a.lastName}
+              </option>
+            ))}
+          </select>
+          <button className="bg-slate-900 text-white font-bold py-2 rounded-lg hover:bg-slate-800 md:col-span-4 mt-2">
+            Add Property
+          </button>
+        </form>
+      </section>
+
+      {/* LISTINGS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {listings.map((l) => (
           <div

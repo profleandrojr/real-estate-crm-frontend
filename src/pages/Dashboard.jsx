@@ -60,7 +60,7 @@ const Dashboard = () => {
           >
             <div className="flex justify-between items-start">
               <h3 className="text-xl font-bold">
-                {agent.FirstName} {agent.lastName}
+                {agent.firstName} {agent.lastName}
               </h3>
               <span
                 className={`px-2 py-1 rounded text-xs font-bold ${
